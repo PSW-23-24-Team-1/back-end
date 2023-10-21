@@ -22,7 +22,7 @@ jobs:
         run: dotnet build
   test:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     services:
@@ -51,4 +51,3 @@ jobs:
       - name: Build project
         working-directory: './src'
         run: dotnet test
-
