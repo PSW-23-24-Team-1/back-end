@@ -5,7 +5,7 @@ namespace Explorer.Payments.Core.Domain.ShoppingCarts;
 public class ShoppingCart : Entity
 {
     public long TouristId { get; init; }
-    public double TotalPrice { get; set; }
+    public double TotalPrice { get; set; } = 0;
     public bool IsPurchased { get; init; }
 
     public ICollection<OrderItem> OrderItems { get; } = new List<OrderItem>();
@@ -39,7 +39,6 @@ public class ShoppingCart : Entity
 
     public void SetTotalPrice()
     {
-        TotalPrice = 0;
         if (OrderItems != null)
         {
             foreach (var items in OrderItems)

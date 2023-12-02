@@ -37,7 +37,7 @@ namespace Explorer.Payments.Core.UseCases
             _shoppingNotificationRepository= shoppingNotificationRepository;
         }
 
-        public Result<TourTokenResponseDto> AddToken(TourTokenCreateDto token)
+        public Result<TourTokenResponseDto> AddToken(TourTokenCreateDto token, double totalPrice)
         {
             //check if tour is archived
             try
@@ -45,7 +45,7 @@ namespace Explorer.Payments.Core.UseCases
                 var wallet = _walletService.GetForTourist(token.TouristId);
                 var shoppingCart = _shoppingCartRepository.GetByTouristId(token.TouristId);
                 var tour = _tourService.Get(token.TourId)?.Value;
-                if (wallet.Value.AdventureCoin >= shoppingCart.TotalPrice)
+                if (wallet.Value.AdventureCoin >= totalPrice)
                 {
                     if (tour == null || (TourStatus)tour.Status == TourStatus.Archived) //OVDE JE PRE PISALO TOURS.DOMAIN
                     {
