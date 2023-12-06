@@ -10,6 +10,8 @@ namespace Explorer.Encounters.API.Public
         Result<EncounterResponseDto> Update<EncounterUpdateDto>(EncounterUpdateDto encounter);
         Result<PagedResult<EncounterResponseDto>> GetPaged(int page, int pageSize);
         Result<PagedResult<EncounterResponseDto>> GetActive(int page, int pageSize);
+        Result<TouristProgressResponseDto> CompleteMiscEncounter(long userId, long encounterId);
+        Result<PagedResult<EncounterResponseDto>> GetAll(int page, int pageSize);
         Result<EncounterResponseDto> Get(long id);
         Result CreateMiscEncounter(MiscEncounterCreateDto encounter);
         Result Delete(long id);

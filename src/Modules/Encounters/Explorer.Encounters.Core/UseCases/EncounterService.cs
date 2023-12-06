@@ -105,6 +105,15 @@ namespace Explorer.Encounters.Core.UseCases
             //return MapToDto<MiscEncounterResponseDto>(entity);
         }
 
+        public Result<TouristProgressResponseDto> CompleteMiscEncounter(long userId, long encounterId)
+        {            
+                return CompleteEncounter(userId, encounterId);
+        }
 
+        public Result<PagedResult<EncounterResponseDto>> GetAll(int page, int pageSize)
+        {
+            var entities = _encounterRepository.GetAll(page, pageSize);
+            return MapToDto<EncounterResponseDto>(entities);
+        }
     }
 }
