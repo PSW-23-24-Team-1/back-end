@@ -1,14 +1,11 @@
 ﻿using Explorer.Blog.API.Dtos;
 using Explorer.Blog.API.Public;
 using Explorer.BuildingBlocks.Core.UseCases;
-using Explorer.BuildingBlocks.Infrastructure.HTTP;
-using Explorer.BuildingBlocks.Infrastructure.HTTP.Interfaces;
 using Explorer.Stakeholders.API.Public;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Net.Http;
 
 namespace Explorer.API.Controllers
 {
@@ -19,14 +16,12 @@ namespace Explorer.API.Controllers
         private readonly IBlogService _blogService;
         private readonly IClubMemberManagementService _clubMemberManagmentService;
         private readonly IClubService _clubService;
-        private readonly IHttpClientService _httpClientService;
 
-        public BlogController(IBlogService authenticationService, IClubMemberManagementService clubMemberManagmentService, IClubService clubService, IHttpClientService httpClientService)
+        public BlogController(IBlogService authenticationService, IClubMemberManagementService clubMemberManagmentService, IClubService clubService)
         {
             _blogService = authenticationService;
             _clubMemberManagmentService = clubMemberManagmentService;
             _clubService = clubService;
-            _httpClientService = httpClientService;
         }
 
 
@@ -58,20 +53,10 @@ namespace Explorer.API.Controllers
         }
 
         [HttpGet]
-        public async Task<String> GetAll([FromQuery] int page, [FromQuery] int pageSize)
+        public ActionResult<PagedResult<BlogResponseDto>> GetAll([FromQuery] int page, [FromQuery] int pageSize)
         {
-            string uri = _httpClientService.BuildUri(Protocol.HTTP, "localhost", 8090, "blogs/published");
-            var response = await _httpClientService.GetAsync(uri);
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-
-                return content;
-            }
-            else
-            {
-                return null;
-            }
+            var result = _blogService.GetAll(page, pageSize);
+            return CreateResponse(result);
         }
 
         [HttpGet("{id:long}")]
