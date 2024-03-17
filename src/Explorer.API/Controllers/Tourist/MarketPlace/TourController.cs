@@ -1,10 +1,13 @@
 ﻿using Explorer.BuildingBlocks.Core.UseCases;
+using Explorer.BuildingBlocks.Infrastructure.HTTP.Interfaces;
 using Explorer.Payments.API.Public;
 using Explorer.Tours.API.Dtos;
 using Explorer.Tours.API.Public;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace Explorer.API.Controllers.Tourist.MarketPlace
 {
@@ -13,11 +16,14 @@ namespace Explorer.API.Controllers.Tourist.MarketPlace
     {
         private readonly ITourService _tourService;
         private readonly IShoppingCartService _shoppingCartService;
+        private readonly IHttpClientService _httpClient;
 
-        public TourController(ITourService service, IShoppingCartService shoppingCartService)
+        public TourController(ITourService service, IShoppingCartService shoppingCartService, IHttpClientService httpClient)
         {
             _tourService = service;
             _shoppingCartService = shoppingCartService;
+            _httpClient = httpClient;
+            
         }
 
         [Authorize(Roles = "author, tourist")]
@@ -29,10 +35,38 @@ namespace Explorer.API.Controllers.Tourist.MarketPlace
         }
 
         [HttpGet("tours/{tourId:long}")]
-        public ActionResult<PagedResult<TourResponseDto>> GetById(long tourId)
+        public async Task<ActionResult<PagedResult<TourResponseDto>>> GetById(long tourId)
         {
-            var result = _tourService.GetById(tourId);
-            return CreateResponse(result);
+            string uri = _httpClient.BuildUri(Protocol.HTTP, "localhost", 8087, $"tours/{tourId}");
+            var response = await _httpClient.GetAsync(uri);
+            if (response != null && response.IsSuccessStatusCode)
+            {
+                var jsonString = await response.Content.ReadAsStringAsync();
+                var res = JsonSerializer.Deserialize<TourRespondeDtoNew>(jsonString);
+
+                string keyPointUri = _httpClient.BuildUri(Protocol.HTTP, "localhost", 8087, "tours/" + res.Id + "/key-points");
+
+                var keyPointResponse = await _httpClient.GetAsync(keyPointUri);
+                if (keyPointResponse != null && keyPointResponse.IsSuccessStatusCode)
+                {
+                    var keyPointJsonString = await keyPointResponse.Content.ReadAsStringAsync();
+                    var keyPointRes = JsonSerializer.Deserialize<KeyPointResponseDto[]>(keyPointJsonString);
+
+                    res.KeyPoints = new List<KeyPointResponseDto>(keyPointRes);
+                }
+                else
+                {
+                    return CreateResponse(FluentResults.Result.Fail(FailureCode.InvalidArgument));
+                }
+
+                return CreateResponse(FluentResults.Result.Ok(res));
+            }
+            else
+            {
+                return CreateResponse(FluentResults.Result.Fail(FailureCode.InvalidArgument));
+            }
+            //var result = _tourService.GetById(tourId);
+            //return CreateResponse(result);
         }
 
         [HttpGet("tours/can-be-rated/{tourId:long}")]
